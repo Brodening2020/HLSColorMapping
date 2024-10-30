@@ -6,13 +6,15 @@ import math
 from PIL import ImageGrab
 
 #imgpath=r"./test.png"
-imgpath=r"./test3.png"
+imgpath=r"./Test3.png"
 resize_height=1000
 #HLS毎に何階級に分けるか
 bins=(20, 10, 10)
 threshold=1
 threshold2=None
-point_size=200
+#度数何個ごとに点の大きさ変えるか
+count_threshold=np.array([20, 50, 100, 200, 500, 1000, 5000, 10000, 100000])
+pointsizes=np.array([1, 10, 30, 50, 70, 100, 200, 300, 500])
 
 # 画像をクリップボードから読み込み、リサイズし、RGB版とHLS版を返す
 def read_image(imgpath, resize_height):
@@ -38,7 +40,7 @@ def histogram(im_hls, bins, threshold, threshold2):
         idx = np.where(a>=threshold)
     else:
         idx = np.where((a>=threshold)&(a<=threshold2))
-    #抽出した部分の全個数カウント
+    #抽出した部分の個数
     count = a[idx]
     #抽出部分に対応する階級値を抽出　HSL各成分ごと
     hls = np.array([c[i][idx[i]].astype(float) for i in range(3)])
@@ -55,7 +57,19 @@ def hls2Triangle(h, l, s):
     s_tri=s*np.minimum(l, 1-l)*math.sqrt(3)
     return h, l, s, s_tri
 
-def plot(hls, rgb, point_size):
+#度数に応じて点の描画サイズを変える関数
+def pointsize(count, count_threshold, pointsizes):
+    sizes=np.zeros(len(count))
+    for i, c in enumerate(count):
+        if c<=count_threshold[-1]:
+            thres_id=np.where(count_threshold>=c)[0][0]
+        else:
+            thres_id=len(count_threshold)-1
+        sizes[i]=pointsizes[thres_id]
+    return sizes
+
+
+def plot(hls, rgb, count):
     fig, ax = plt.subplots(figsize=(10, 10), subplot_kw={'projection': '3d'})
 
     #クリスタのLS三角形領域をプロット
@@ -64,7 +78,8 @@ def plot(hls, rgb, point_size):
 
     #各色をHLSでプロット
     h, l, s, s_tri = hls2Triangle(*hls)
-    sc=ax.scatter(s_tri, l, h, s=point_size, c=rgb, alpha=1)
+
+    sc=ax.scatter(s_tri, l, h, s=pointsize(count, count_threshold, pointsizes), c=rgb, alpha=1)
 
     plt.xticks(np.arange(0, 1.25, 0.25))
     plt.yticks(np.arange(0, 1.25, 0.25))
@@ -83,7 +98,7 @@ def plot(hls, rgb, point_size):
         i = ind["ind"][0]
         pos = sc.get_offsets()[i]
         annot.xy = pos
-        text = "H:"+str(int(h[i]))+" L:"+str(int(l[i]*100))+" S:"+str(int(s[i]*100))
+        text = "H:"+str(int(h[i]))+" L:"+str(int(l[i]*100))+" S:"+str(int(s[i]*100))+" Count:"+str(int(count[i]))
         annot.set_text(text)
 
     def hover(event):
@@ -106,7 +121,9 @@ def plot(hls, rgb, point_size):
 
 im_hls, img=read_image(imgpath, resize_height)
 hls, rgb, count=histogram(im_hls, bins, threshold, threshold2)
-fig, ax=plot(hls, rgb, point_size)
+print(count.shape)
+print(hls.shape)
+fig, ax=plot(hls, rgb, count)
 
 
 
