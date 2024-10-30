@@ -12,9 +12,12 @@ resize_height=1000
 bins=(20, 10, 10)
 threshold=1
 threshold2=None
+
 #度数何個ごとに点の大きさ変えるか
-count_threshold=np.array([20, 50, 100, 200, 500, 1000, 5000, 10000, 100000])
-pointsizes=np.array([1, 10, 30, 50, 70, 100, 200, 300, 500])
+#pixelの数なので画像全体に占める割合%で、最大5%として計算してみる
+approx_size=resize_height**2
+count_threshold=np.dot(approx_size, [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.02, 0.05])
+pointsizes=np.array([1, 5, 10, 50, 100, 200, 500])
 
 # 画像をクリップボードから読み込み、リサイズし、RGB版とHLS版を返す
 def read_image(imgpath, resize_height):
@@ -74,7 +77,7 @@ def plot(hls, rgb, count):
 
     #クリスタのLS三角形領域をプロット
     tri_points = np.array([[0, 0, 0], [0, 1, 0], [np.sqrt(3)/2, 0.5, 0], [0, 0, 0]])
-    ax.plot(tri_points[:, 0], tri_points[:, 1], color='blue', linewidth=2)  # 'bo-' は青い点と線を意味します
+    ax.plot(tri_points[:, 0], tri_points[:, 1], color='blue', linewidth=2)
 
     #各色をHLSでプロット
     h, l, s, s_tri = hls2Triangle(*hls)
@@ -116,6 +119,7 @@ def plot(hls, rgb, count):
 
     fig.canvas.mpl_connect("motion_notify_event", hover)
     
+    plt.tight_layout()
     plt.show()
     return fig, ax
 
@@ -124,59 +128,3 @@ hls, rgb, count=histogram(im_hls, bins, threshold, threshold2)
 print(count.shape)
 print(hls.shape)
 fig, ax=plot(hls, rgb, count)
-
-
-
-
-
-"""
-# HLSから球内に写像する
-def hls2xyz(h, l, s):
-    h *= 2 * np.pi / 255
-    l *= 2 / 255
-    l -= 1
-    s *= 1 / 255
-
-    x = s * np.cos(h) * np.cos(np.arcsin(l))
-    y = s * np.sin(h) * np.cos(np.arcsin(l))
-    z = l
-    return x, y, z
-
-# 球内の座標に対応するRGBを計算する
-def xyz2rgb(x, y, z, sat=1):
-    h = (np.arctan2(-y, -x) + np.pi) * 255 / 2 / np.pi
-    l = (z + 1) / 2 * 255
-    s = np.full_like(z, 255*sat)
-    rgb = cv2.cvtColor(np.c_[h, l, s][None].astype(np.uint8), cv2.COLOR_HLS2RGB_FULL)[0].astype(float) / 255
-    return rgb
-
-# プロットを行う
-def plot(hls, rgb, size, sphere=True, sphere_type=1, size_max=1000):
-    
-    fig, ax = plt.subplots(subplot_kw={'projection': '3d'})
-    ax.set_facecolor((0.25, 0.25, 0.25))
-    
-    if sphere:
-        th = np.r_[0:2*np.pi:100j]
-        if sphere_type in (1, "both"):
-            for i in np.r_[-.95:.95:10j]:
-                r = np.cos(np.arcsin(i))
-                circle = np.c_[r*np.cos(th), r*np.sin(th), np.full(100, i)].T
-                rgb_ = xyz2rgb(*circle)
-                ax.scatter(*circle, c=rgb_, alpha=.1, s=1)
-        if sphere_type in (2, "both"):
-            a = np.c_[np.zeros_like(th), np.cos(th), np.sin(th)]
-            for i in np.r_[0:np.pi:np.pi/6]:
-                circle = (a @ np.c_[[np.cos(i), -np.sin(i), 0], [np.sin(i), np.cos(i), 0], [0, 0, 1]]).T
-                rgb_ = xyz2rgb(*circle)
-                ax.scatter(*circle, c=rgb_, alpha=.1, s=1)
-    
-    x, y, z = hls2xyz(*hls)
-    ax.scatter(x, y, z, s=np.clip(size, 0, size_max), alpha=.7, c=rgb)
-        
-    ax.set_proj_type('ortho')
-    ax.axis('equal')
-    ax.axis('off')
-    plt.show()
-    return fig, ax
-    """
