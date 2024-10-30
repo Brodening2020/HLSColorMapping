@@ -42,36 +42,61 @@ def hls2Triangle(h, l, s):
     l=l/255
     s=s/255
     s_tri=s*np.minimum(l, 1-l)*math.sqrt(3)
-    return h, l, s_tri
+    return h, l, s, s_tri
 
 def plot(hls, rgb):
-    fig, ax = plt.subplots(subplot_kw={'projection': '3d'})
+    fig, ax = plt.subplots(figsize=(10, 10), subplot_kw={'projection': '3d'})
 
-    h, l, s_tri = hls2Triangle(*hls)
-    ax.scatter(s_tri, l, 0, c=rgb)
+    #クリスタのLS三角形領域をプロット
+    tri_points = np.array([[0, 0, 0], [0, 1, 0], [np.sqrt(3)/2, 0.5, 0], [0, 0, 0]])
+    ax.plot(tri_points[:, 0], tri_points[:, 1], color='blue', linewidth=2)  # 'bo-' は青い点と線を意味します
+
+    #各色をHLSでプロット
+    h, l, s, s_tri = hls2Triangle(*hls)
+    sc=ax.scatter(s_tri, l, h, s=100, c=rgb, alpha=1)
 
     plt.xticks(np.arange(0, 1.25, 0.25))
     plt.yticks(np.arange(0, 1.25, 0.25))
-    ax.set_zlim(0)
     ax.set_xlabel('S_TRI')
     ax.set_ylabel('L')
     ax.set_zlabel('H')
+    ax.set_zlim(0)
+    
+    #マウスホバーしたときにHLSを表示
+    annot = ax.annotate("", xy=(0,0), xytext=(20,20),textcoords="offset points",
+                    bbox=dict(boxstyle="round", fc="w"),
+                    arrowprops=dict(arrowstyle="->"))
+    annot.set_visible(False)
 
-    # 三角形の頂点を定義
-    points = np.array([[0, 0, 0], [0, 1, 0], [np.sqrt(3)/2, 0.5, 0], [0, 0, 0]])
+    def update_annot(ind):
+        i = ind["ind"][0]
+        pos = sc.get_offsets()[i]
+        annot.xy = pos
+        text = "H:"+str(int(h[i]))+" L:"+str(int(l[i]*100))+" S:"+str(int(s[i]*100))
+        annot.set_text(text)
 
-    # 三角形を描画
-    ax.plot(points[:, 0], points[:, 1], 'bo-')  # 'bo-' は青い点と線を意味します
+    def hover(event):
+        vis = annot.get_visible()
+        if event.inaxes == ax:
+            cont, ind = sc.contains(event)
+            if cont:
+                update_annot(ind)
+                annot.set_visible(True)
+                fig.canvas.draw_idle()
+            else:
+                if vis:
+                   annot.set_visible(False)
+                   fig.canvas.draw_idle()
 
-    plt.axis('equal') # 軸のスケーリングを等しくする
+    fig.canvas.mpl_connect("motion_notify_event", hover)
+    
     plt.show()
     return fig, ax
-
 
 imgpath=r"./test.png"
 im_hls, img=read_image(imgpath)
 hls, rgb, count=histogram(im_hls)
-plot(hls, rgb)
+fig, ax=plot(hls, rgb)
 
 
 
