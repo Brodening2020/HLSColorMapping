@@ -5,8 +5,7 @@ import cv2
 import math
 from PIL import ImageGrab
 
-#imgpath=r"./test.png"
-imgpath=r"./Test3.png"
+imgpath=r"./TestImages/Test4.png"
 resize_height=1000
 #HLS毎に何階級に分けるか
 bins=(20, 10, 10)
