@@ -5,9 +5,20 @@ import cv2
 import math
 from PIL import ImageGrab
 
+#imgpath=r"./test.png"
+imgpath=r"./test3.png"
+resize_height=1000
+#HLS毎に何階級に分けるか
+bins=(20, 10, 10)
+threshold=1
+threshold2=None
+point_size=200
+
 # 画像をクリップボードから読み込み、リサイズし、RGB版とHLS版を返す
-def read_image(imgpath, height=256):
+def read_image(imgpath, resize_height):
     img = cv2.cvtColor(cv2.imread(imgpath), cv2.COLOR_BGR2RGB)
+    height, width = img.shape[:2]
+    img = cv2.resize(img, (resize_height*width//height, resize_height))
     im = np.array(img)
     #HLSに変換
     im_hls = cv2.cvtColor(im, cv2.COLOR_RGB2HLS_FULL).reshape(-1, 3).astype(float)
@@ -15,7 +26,7 @@ def read_image(imgpath, height=256):
 
 #近傍の色をまとめて、threshold個以上含まれる色のみ抽出する
 #binsは、何階級に分けるかを指定している これにより近傍色まとまる
-def histogram(im_hls, bins=(64, 32, 16), threshold=1, threshold2=None):
+def histogram(im_hls, bins, threshold, threshold2):
     #HLSの各成分について一定階級ごとに分割、ヒストグラムで分布計算
     #bin_edgeの代わりにrangeで指定
     #aはhistogram行列、bにはedgeが返ってくる
@@ -44,7 +55,7 @@ def hls2Triangle(h, l, s):
     s_tri=s*np.minimum(l, 1-l)*math.sqrt(3)
     return h, l, s, s_tri
 
-def plot(hls, rgb):
+def plot(hls, rgb, point_size):
     fig, ax = plt.subplots(figsize=(10, 10), subplot_kw={'projection': '3d'})
 
     #クリスタのLS三角形領域をプロット
@@ -53,7 +64,7 @@ def plot(hls, rgb):
 
     #各色をHLSでプロット
     h, l, s, s_tri = hls2Triangle(*hls)
-    sc=ax.scatter(s_tri, l, h, s=100, c=rgb, alpha=1)
+    sc=ax.scatter(s_tri, l, h, s=point_size, c=rgb, alpha=1)
 
     plt.xticks(np.arange(0, 1.25, 0.25))
     plt.yticks(np.arange(0, 1.25, 0.25))
@@ -93,10 +104,9 @@ def plot(hls, rgb):
     plt.show()
     return fig, ax
 
-imgpath=r"./test.png"
-im_hls, img=read_image(imgpath)
-hls, rgb, count=histogram(im_hls)
-fig, ax=plot(hls, rgb)
+im_hls, img=read_image(imgpath, resize_height)
+hls, rgb, count=histogram(im_hls, bins, threshold, threshold2)
+fig, ax=plot(hls, rgb, point_size)
 
 
 
