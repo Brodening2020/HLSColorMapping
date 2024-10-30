@@ -1,5 +1,5 @@
 import numpy as np
-import matplolib.pyplot as plt
+import matplotlib.pyplot as plt
 import cv2
 from PIL import ImageGrab
 
