@@ -4,8 +4,9 @@ from mpl_toolkits.mplot3d import Axes3D
 import cv2
 import math
 from PIL import ImageGrab
+import mpld3
 
-imgpath=r"./TestImages/Test4.png"
+imgpath=r"./TestImages/pic4.jpg"
 resize_height=1000
 #HLS毎に何階級に分けるか
 bins=(20, 10, 10)
@@ -118,12 +119,13 @@ def plot(hls, rgb, count):
 
     fig.canvas.mpl_connect("motion_notify_event", hover)
     
-    plt.tight_layout()
-    plt.show()
-    return fig, ax
+    #plt.tight_layout()
+    #plt.show()
+    mpld3.show()
+    #return fig, ax
 
 im_hls, img=read_image(imgpath, resize_height)
 hls, rgb, count=histogram(im_hls, bins, threshold, threshold2)
 print(count.shape)
 print(hls.shape)
-fig, ax=plot(hls, rgb, count)
+plot(hls, rgb, count)
