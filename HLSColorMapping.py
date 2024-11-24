@@ -2,8 +2,12 @@ import numpy as np
 import cv2
 import math
 import plotly.graph_objects as go
+from jinja2 import Template
 
 imgpath=r"./TestImages/pic4.jpg"
+input_template_path = r"./templates/index.html"
+output_html_path=r"./templates/{}.html".format(imgpath.split("/")[-1].split(".")[0])
+
 resize_height=1000
 #HLS毎に何階級に分けるか
 bins=(20, 10, 10)
@@ -14,8 +18,12 @@ threshold2=None
 #pixelの数なので画像全体に占める割合%で、最大5%として計算してみる
 approx_size=resize_height**2
 count_threshold=np.dot(approx_size, [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.02, 0.05])
-pointsizes=np.array([1, 5, 10, 50, 100, 200, 500])
 pointsizes_go=np.array([3, 5, 10, 15, 20, 30, 35])
+
+#グラフの描画領域の大きさpx
+graph_height=800
+graph_width=800
+
 
 # 画像をクリップボードから読み込み、リサイズし、RGB版とHLS版を返す
 def read_image(imgpath, resize_height):
@@ -86,6 +94,8 @@ def plot_go(hls, rgb, count, title):
                         hoverinfo="text",
                         showlegend=False)
     layout = go.Layout(
+        height=graph_height,
+        width=graph_width,
         title={
             'text': title,
             "x":0.5,
@@ -108,7 +118,16 @@ def plot_go(hls, rgb, count, title):
                                line=dict(color='blue'),
                                hoverinfo="skip",
                                showlegend=False))
-    fig.show()
+    #fig.show()
+    return fig
+
+def html_output(fig):
+    plotly_jinja_data = {"fig":fig.to_html(full_html=False)}
+    #consider also defining the include_plotlyjs parameter to point to an external Plotly.js as described above
+    with open(output_html_path, "w", encoding="utf-8") as output_file:
+        with open(input_template_path) as template_file:
+            j2_template = Template(template_file.read())
+            output_file.write(j2_template.render(plotly_jinja_data))
 
 im_hls, img=read_image(imgpath, resize_height)
 hls, rgb, rgb_percent, count=histogram(im_hls, bins, threshold, threshold2)
@@ -116,4 +135,5 @@ print(count.shape)
 print(hls.shape)
 print(rgb.shape)
 title=imgpath.split("/")[-1]
-plot_go(hls, rgb, count, title)
+fig=plot_go(hls, rgb, count, title)
+html_output(fig)
