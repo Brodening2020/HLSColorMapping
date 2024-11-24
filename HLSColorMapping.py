@@ -1,9 +1,6 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 import cv2
 import math
-import plotly.express as px
 import plotly.graph_objects as go
 
 imgpath=r"./TestImages/pic4.jpg"
@@ -73,59 +70,7 @@ def pointsize(count, count_threshold, pointsizes):
         sizes[i]=pointsizes[thres_id]
     return sizes
 
-
-def plot(hls, rgb, count):
-    fig, ax = plt.subplots(figsize=(10, 10), subplot_kw={'projection': '3d'})
-
-    #クリスタのLS三角形領域をプロット
-    tri_points = np.array([[0, 0, 0], [0, 1, 0], [np.sqrt(3)/2, 0.5, 0], [0, 0, 0]])
-    ax.plot(tri_points[:, 0], tri_points[:, 1], color='blue', linewidth=2)
-
-    #各色をHLSでプロット *で渡すことでリストの各要素を引数として受け取ってくれる
-    h, l, s, s_tri = hls2Triangle(*hls)
-
-    sc=ax.scatter(s_tri, l, h, s=pointsize(count, count_threshold, pointsizes), c=rgb, alpha=1)
-
-    plt.xticks(np.arange(0, 1.25, 0.25))
-    plt.yticks(np.arange(0, 1.25, 0.25))
-    ax.set_xlabel('S_TRI')
-    ax.set_ylabel('L')
-    ax.set_zlabel('H')
-    ax.set_zlim(0)
-    
-    #マウスホバーしたときにHLSを表示
-    annot = ax.annotate("", xy=(0,0), xytext=(20,20),textcoords="offset points",
-                    bbox=dict(boxstyle="round", fc="w"),
-                    arrowprops=dict(arrowstyle="->"))
-    annot.set_visible(False)
-
-    def update_annot(ind):
-        i = ind["ind"][0]
-        pos = sc.get_offsets()[i]
-        annot.xy = pos
-        text = "H:"+str(int(h[i]))+" L:"+str(int(l[i]*100))+" S:"+str(int(s[i]*100))+" Count:"+str(int(count[i]))
-        annot.set_text(text)
-
-    def hover(event):
-        vis = annot.get_visible()
-        if event.inaxes == ax:
-            cont, ind = sc.contains(event)
-            if cont:
-                update_annot(ind)
-                annot.set_visible(True)
-                fig.canvas.draw_idle()
-            else:
-                if vis:
-                   annot.set_visible(False)
-                   fig.canvas.draw_idle()
-
-    fig.canvas.mpl_connect("motion_notify_event", hover)
-    
-    plt.tight_layout()
-    plt.show()
-    return fig, ax
-
-def plot_go(hls, rgb, count):
+def plot_go(hls, rgb, count, title):
     #各色をHLSでプロット *で渡すことでリストの各要素を引数として受け取ってくれる
     h, l, s, s_tri = hls2Triangle(*hls)
     #各色バブルの大きさを取得
@@ -136,20 +81,28 @@ def plot_go(hls, rgb, count):
     hovertext=["Count:{} H:{} L:{} S:{}".format(int(count[i]), int(h[i]), int(l[i]*100), int(s[i]*100))
                for i in range(len(h))]
     #plotlyでバブルチャート作成　legend出すと重いので必ずオフ
-    trace = go.Scatter3d(x=s_tri, y=l, z=h, text=hovertext, mode='markers', 
+    trace = go.Scatter3d(x=l, y=s_tri, z=h, text=hovertext, mode='markers', 
                         marker=dict(size=size, color=rgb_array, opacity=1.0), 
                         hoverinfo="text",
                         showlegend=False)
-    layout = go.Layout(scene=dict(
-                        xaxis=dict(dtick=0.25, range=[-0.1,1.1], title='彩度S_TRI'),
-                        yaxis=dict(dtick=0.25, range=[-0.1,1.1], title='輝度L'),
-                        zaxis=dict(dtick=30, range=[0, 370], title='色相H')
-                       ))
+    layout = go.Layout(
+        title={
+            'text': title,
+            "x":0.5,
+            'xanchor': 'center',
+            'yanchor': 'top'},
+        scene=dict(
+            xaxis=dict(dtick=0.25, range=[1.1, -0.1], title='輝度L'),
+            yaxis=dict(dtick=0.25, range=[-0.1, 1.1], title='彩度S_TRI'),
+            zaxis=dict(dtick=30, range=[0, 370], title='色相H')
+            ),
+        font=dict(family="Arial")
+    )
     fig = go.Figure(data=[trace], layout=layout)
 
     #クリスタのLS三角形領域をプロット　ホバー情報は表示しない
-    tri_x = [0, 0, np.sqrt(3)/2, 0]
-    tri_y = [0, 1, 0.5, 0]
+    tri_x = [0, 1, 0.5, 0]
+    tri_y = [0, 0, np.sqrt(3)/2, 0]
     tri_z=[0, 0, 0, 0]
     fig.add_trace(go.Scatter3d(x=tri_x, y=tri_y, z=tri_z, mode="lines", 
                                line=dict(color='blue'),
@@ -157,12 +110,10 @@ def plot_go(hls, rgb, count):
                                showlegend=False))
     fig.show()
 
-
-
 im_hls, img=read_image(imgpath, resize_height)
 hls, rgb, rgb_percent, count=histogram(im_hls, bins, threshold, threshold2)
 print(count.shape)
 print(hls.shape)
 print(rgb.shape)
-plot_go(hls, rgb, count)
-#plot(hls, rgb_percent, count)
+title=imgpath.split("/")[-1]
+plot_go(hls, rgb, count, title)
