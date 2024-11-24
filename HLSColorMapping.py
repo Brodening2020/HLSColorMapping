@@ -3,8 +3,6 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import cv2
 import math
-from PIL import ImageGrab
-import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
@@ -127,20 +125,36 @@ def plot(hls, rgb, count):
     plt.show()
     return fig, ax
 
-def plot_px(hls, rgb, count):
+def plot_go(hls, rgb, count):
     #各色をHLSでプロット *で渡すことでリストの各要素を引数として受け取ってくれる
     h, l, s, s_tri = hls2Triangle(*hls)
+    #各色バブルの大きさを取得
     size=pointsize(count, count_threshold, pointsizes_go)
+    #rgbで指定した点の色をplotlyがわかるフォーマットに書き換え
     rgb_array=['rgb({},{},{})'.format(r, g, b) for r, g, b in rgb]
-    # 3D散布図を作成
+    #マウスをホバーしたときに各点で表示するテキストのリスト
     hovertext=["Count:{} H:{} L:{} S:{}".format(int(count[i]), int(h[i]), int(l[i]*100), int(s[i]*100))
                for i in range(len(h))]
+    #plotlyでバブルチャート作成　legend出すと重いので必ずオフ
     trace = go.Scatter3d(x=s_tri, y=l, z=h, text=hovertext, mode='markers', 
                         marker=dict(size=size, color=rgb_array, opacity=1.0), 
                         hoverinfo="text",
-                        showlegend=False) 
-    layout = go.Layout(scene=dict(xaxis_title='彩度S', yaxis_title='輝度L', zaxis_title='色相H')) 
+                        showlegend=False)
+    layout = go.Layout(scene=dict(
+                        xaxis=dict(dtick=0.25, range=[-0.1,1.1], title='彩度S_TRI'),
+                        yaxis=dict(dtick=0.25, range=[-0.1,1.1], title='輝度L'),
+                        zaxis=dict(dtick=30, range=[0, 370], title='色相H')
+                       ))
     fig = go.Figure(data=[trace], layout=layout)
+
+    #クリスタのLS三角形領域をプロット　ホバー情報は表示しない
+    tri_x = [0, 0, np.sqrt(3)/2, 0]
+    tri_y = [0, 1, 0.5, 0]
+    tri_z=[0, 0, 0, 0]
+    fig.add_trace(go.Scatter3d(x=tri_x, y=tri_y, z=tri_z, mode="lines", 
+                               line=dict(color='blue'),
+                               hoverinfo="skip",
+                               showlegend=False))
     fig.show()
 
 
@@ -150,5 +164,5 @@ hls, rgb, rgb_percent, count=histogram(im_hls, bins, threshold, threshold2)
 print(count.shape)
 print(hls.shape)
 print(rgb.shape)
-plot_px(hls, rgb, count)
+plot_go(hls, rgb, count)
 #plot(hls, rgb_percent, count)
