@@ -4,7 +4,9 @@ from mpl_toolkits.mplot3d import Axes3D
 import cv2
 import math
 from PIL import ImageGrab
-import mpld3
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
 
 imgpath=r"./TestImages/pic4.jpg"
 resize_height=1000
@@ -18,6 +20,7 @@ threshold2=None
 approx_size=resize_height**2
 count_threshold=np.dot(approx_size, [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.02, 0.05])
 pointsizes=np.array([1, 5, 10, 50, 100, 200, 500])
+pointsizes_go=np.array([3, 5, 10, 15, 20, 30, 35])
 
 # 画像をクリップボードから読み込み、リサイズし、RGB版とHLS版を返す
 def read_image(imgpath, resize_height):
@@ -48,8 +51,9 @@ def histogram(im_hls, bins, threshold, threshold2):
     #抽出部分に対応する階級値を抽出　HSL各成分ごと
     hls = np.array([c[i][idx[i]].astype(float) for i in range(3)])
     #近傍色まとめたのでRGB（%）にも変換して返す
-    rgb = cv2.cvtColor(hls.T[None].astype(np.uint8), cv2.COLOR_HLS2RGB_FULL)[0].astype(float)/255
-    return hls, rgb, count
+    rgb = cv2.cvtColor(hls.T[None].astype(np.uint8), cv2.COLOR_HLS2RGB_FULL)[0].astype(float)
+    rgb_percent=rgb/255
+    return hls, rgb, rgb_percent, count
 
 #HLSを％に直してクリスタの正三角形カラーサークルに写像
 def hls2Triangle(h, l, s):
@@ -79,7 +83,7 @@ def plot(hls, rgb, count):
     tri_points = np.array([[0, 0, 0], [0, 1, 0], [np.sqrt(3)/2, 0.5, 0], [0, 0, 0]])
     ax.plot(tri_points[:, 0], tri_points[:, 1], color='blue', linewidth=2)
 
-    #各色をHLSでプロット
+    #各色をHLSでプロット *で渡すことでリストの各要素を引数として受け取ってくれる
     h, l, s, s_tri = hls2Triangle(*hls)
 
     sc=ax.scatter(s_tri, l, h, s=pointsize(count, count_threshold, pointsizes), c=rgb, alpha=1)
@@ -119,13 +123,32 @@ def plot(hls, rgb, count):
 
     fig.canvas.mpl_connect("motion_notify_event", hover)
     
-    #plt.tight_layout()
-    #plt.show()
-    mpld3.show()
-    #return fig, ax
+    plt.tight_layout()
+    plt.show()
+    return fig, ax
+
+def plot_px(hls, rgb, count):
+    #各色をHLSでプロット *で渡すことでリストの各要素を引数として受け取ってくれる
+    h, l, s, s_tri = hls2Triangle(*hls)
+    size=pointsize(count, count_threshold, pointsizes_go)
+    rgb_array=['rgb({},{},{})'.format(r, g, b) for r, g, b in rgb]
+    # 3D散布図を作成
+    hovertext=["Count:{} H:{} L:{} S:{}".format(int(count[i]), int(h[i]), int(l[i]*100), int(s[i]*100))
+               for i in range(len(h))]
+    trace = go.Scatter3d(x=s_tri, y=l, z=h, text=hovertext, mode='markers', 
+                        marker=dict(size=size, color=rgb_array, opacity=1.0), 
+                        hoverinfo="text",
+                        showlegend=False) 
+    layout = go.Layout(scene=dict(xaxis_title='彩度S', yaxis_title='輝度L', zaxis_title='色相H')) 
+    fig = go.Figure(data=[trace], layout=layout)
+    fig.show()
+
+
 
 im_hls, img=read_image(imgpath, resize_height)
-hls, rgb, count=histogram(im_hls, bins, threshold, threshold2)
+hls, rgb, rgb_percent, count=histogram(im_hls, bins, threshold, threshold2)
 print(count.shape)
 print(hls.shape)
-plot(hls, rgb, count)
+print(rgb.shape)
+plot_px(hls, rgb, count)
+#plot(hls, rgb_percent, count)
