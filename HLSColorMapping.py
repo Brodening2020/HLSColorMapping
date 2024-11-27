@@ -4,10 +4,6 @@ import math
 import plotly.graph_objects as go
 from jinja2 import Template
 
-imgpath=r"./TestImages/pic4.jpg"
-input_template_path = r"./templates/result_template.html"
-output_html_path=r"./templates/{}.html".format(imgpath.split("/")[-1].split(".")[0])
-
 resize_height=1000
 #HLS毎に何階級に分けるか
 bins=(20, 10, 10)
@@ -121,7 +117,7 @@ def plot_go(hls, rgb, count, title):
     #fig.show()
     return fig
 
-def html_output(fig):
+def html_output(fig, input_template_path, output_html_path):
     plotly_jinja_data = {"fig":fig.to_html(full_html=False)}
     #consider also defining the include_plotlyjs parameter to point to an external Plotly.js as described above
     with open(output_html_path, "w", encoding="utf-8") as output_file:
@@ -129,11 +125,12 @@ def html_output(fig):
             j2_template = Template(template_file.read())
             output_file.write(j2_template.render(plotly_jinja_data))
 
-im_hls, img=read_image(imgpath, resize_height)
-hls, rgb, rgb_percent, count=histogram(im_hls, bins, threshold, threshold2)
-print(count.shape)
-print(hls.shape)
-print(rgb.shape)
-title=imgpath.split("/")[-1]
-fig=plot_go(hls, rgb, count, title)
-html_output(fig)
+def mapping(imgpath, input_template_path, output_html_path):
+    im_hls, img=read_image(imgpath, resize_height)
+    hls, rgb, rgb_percent, count=histogram(im_hls, bins, threshold, threshold2)
+    #print(count.shape)
+    #print(hls.shape)
+    #print(rgb.shape)
+    title=imgpath.split("/")[-1]
+    fig=plot_go(hls, rgb, count, title)
+    html_output(fig, input_template_path, output_html_path)
