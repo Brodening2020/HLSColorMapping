@@ -4,18 +4,16 @@
         <title>HLS ColorMapping System for ClipStudioPaint</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>
-            body {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                height: 100vh;
-                margin: 0;
-            }
-        </style>
     </head>
     <body>
-        <h1>HLS ColorMapping System for ClipStudioPaint</h1>
-        {{fig}}
+        <h1>HLS Color Mapping System for ClipStudioPaint</h1>
+        <h2>1. 画像を選択</h2>
+        <input type="file" accept="image/*" id="imgOpen">
+        <h2>2. 結果</h2>
+        <p><img src="" id="imgResult" style="max-width:100%;-webkit-filter:grayscale();"></p>
+        <h2>3. 保存</h2>
+        <button id="imgSave">保存する</button>
+        <input type="file" nwsaveas accept="image/png" id="imgSaveDialog" style="display:none;">
+        <script src="./run.js"></script>
     </body>
 </html>

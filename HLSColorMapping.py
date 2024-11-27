@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 from jinja2 import Template
 
 imgpath=r"./TestImages/pic4.jpg"
-input_template_path = r"./templates/index.html"
+input_template_path = r"./templates/result_template.html"
 output_html_path=r"./templates/{}.html".format(imgpath.split("/")[-1].split(".")[0])
 
 resize_height=1000
