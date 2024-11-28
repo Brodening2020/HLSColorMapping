@@ -3,13 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>画像アップロード</title>
+    <title>画像アップロード画面</title>
 </head>
 <body>
-    <h1>画像アップロードフォーム</h1>
+    <h1>HLS Color Mapping System for ClipStudioPaint</h1>
+    <p>画像をアップロードして、色彩解析をしましょう！画像内に含まれる色のピクセル数をそれぞれ数え、グラフにしてHTMLとして出力します。クリスタのカラーサークルのHLSモードに対応。</p>
+    <img src="../ClipStudio_ColorCircle.png">
+    <p><b>注）日本語名の画像ファイルは読み込めません！！！</b>（バックエンド側でOpenCVが日本語非対応）</p>
+    <!---
+    enctypeを書かないと、添付ファイルの名前だけ受け取られてファイル自体は受け取られない
+    acceptによって受け取れるファイル拡張子指定 ここではOpenCVのimreadに対応したやつを列挙
+    multipleを指定することで複数ファイル受付
+    -->
     <form action="/upload" method="post" enctype="multipart/form-data">
-        <input type="file" name="file">
-        <input type="submit" value="アップロード">
+        <input type="file" 
+            name="file" 
+            accept=".bmp, .dib, .jpg, .jpeg, .jpe, .png, .jp2, .webp, .avif, .pbm, .pgm, .ppm, .pxm, .pnm, .pfm, .sr, .ras, .tiff, .tif, .exr, .hdr, .pic" 
+            multiple/>
+        <input type="submit" value="アップロード＆解析開始">
     </form>
 </body>
 </html>

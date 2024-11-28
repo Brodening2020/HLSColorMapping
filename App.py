@@ -35,14 +35,17 @@ def upload_file():
     #ファイルがアップロードされないまたはファイル名がない場合は/uploadページにリダイレクトしてエラー吐く
     if 'file' not in request.files:
         return redirect(request.url)
-    #今回はまだ1ファイル対応なので受け取ったファイルのうち最初のやつだけ抽出
+    #受け取ったファイルのうち最初のやつだけ抽出し、ほんとにファイルが送られてきたか確認
     file = request.files['file']
     if file.filename == '':
         return redirect(request.url)
-    #ファイルが存在するなら、saveメソッドでPics_Readyに保存
+    #ファイルが存在するなら、saveメソッドでPics_Readyに保存　WerkZeugのMultiDictの文法注意
     if file:
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-        file.save(filepath)
+        filelist=request.files.getlist('file')
+        for f in filelist:
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], f.filename)
+            f.save(filepath)
+
         #Pics_Ready内に保存されたすべての画像に対しHLSColorMappingを実行
         imagepath_list = sorted(Path(imgfolder).glob("*"))
         print(imagepath_list)
@@ -54,9 +57,8 @@ def upload_file():
             #処理する画像は先にPics_Doneへ　HLSColorMapping側でhtml_outputやるときにDone_pics内の画像参照させてHTML作るから
             shutil.move(imgpath, done_imgpath)
             mapping(done_imgpath, input_template_path, output_html_path)
-
         
-        return f'ファイルがアップロードされました: {filepath}'
+        return f'すべてのファイルがアップロードされました: {filepath}'
     
 
 

@@ -118,11 +118,10 @@ def plot_go(hls, rgb, count, title):
     #fig.show()
     return fig
 
-def html_output(imgpath, fig, input_template_path, output_html_path):
+def html_output(data_text, fig, input_template_path, output_html_path):
     #テンプレートHTML内の変数を、python側にその変数があろうがなかろうがすべて書き換えてしまうので、後から変数もう一回書き変えるのは不可能
     #なので書き換える変数を一気にここで処理
     #出力したHTMLが参照するので、HTMLからDone_picsまでの相対パスにする　あと''忘れずに
-    data_text="<img src='"+str(Path("../"+imgpath))+"'>"
     jinja_data = {"pic_done": data_text,
                   "fig":fig.to_html(full_html=False)}
     with open(output_html_path, "w", encoding="utf-8") as output_file:
@@ -138,4 +137,5 @@ def mapping(imgpath, input_template_path, output_html_path):
     #print(rgb.shape)
     title=imgpath.split("/")[-1]
     fig=plot_go(hls, rgb, count, title)
-    html_output(imgpath, fig, input_template_path, output_html_path)
+    data_text="<img src='"+str(Path("../"+imgpath))+"'>"
+    html_output(data_text, fig, input_template_path, output_html_path)
