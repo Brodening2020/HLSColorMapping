@@ -58,7 +58,7 @@ def upload_file():
             shutil.move(imgpath, done_imgpath)
             mapping(done_imgpath, input_template_path, output_html_path)
         
-        return f'すべてのファイルがアップロードされました: {filepath}'
+        return f'すべてのファイルがアップロードされました: {filepath} 解析結果を保存しました: {graph_html_folder}'
     
 
 
