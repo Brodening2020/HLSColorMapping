@@ -3,6 +3,7 @@ import cv2
 import math
 import plotly.graph_objects as go
 from jinja2 import Template
+from pathlib import Path
 
 resize_height=1000
 #HLS毎に何階級に分けるか
@@ -117,13 +118,17 @@ def plot_go(hls, rgb, count, title):
     #fig.show()
     return fig
 
-def html_output(fig, input_template_path, output_html_path):
-    plotly_jinja_data = {"fig":fig.to_html(full_html=False)}
-    #consider also defining the include_plotlyjs parameter to point to an external Plotly.js as described above
+def html_output(imgpath, fig, input_template_path, output_html_path):
+    #テンプレートHTML内の変数を、python側にその変数があろうがなかろうがすべて書き換えてしまうので、後から変数もう一回書き変えるのは不可能
+    #なので書き換える変数を一気にここで処理
+    #出力したHTMLが参照するので、HTMLからDone_picsまでの相対パスにする　あと''忘れずに
+    data_text="<img src='"+str(Path("../"+imgpath))+"'>"
+    jinja_data = {"pic_done": data_text,
+                  "fig":fig.to_html(full_html=False)}
     with open(output_html_path, "w", encoding="utf-8") as output_file:
         with open(input_template_path) as template_file:
             j2_template = Template(template_file.read())
-            output_file.write(j2_template.render(plotly_jinja_data))
+            output_file.write(j2_template.render(jinja_data))
 
 def mapping(imgpath, input_template_path, output_html_path):
     im_hls, img=read_image(imgpath, resize_height)
@@ -133,4 +138,4 @@ def mapping(imgpath, input_template_path, output_html_path):
     #print(rgb.shape)
     title=imgpath.split("/")[-1]
     fig=plot_go(hls, rgb, count, title)
-    html_output(fig, input_template_path, output_html_path)
+    html_output(imgpath, fig, input_template_path, output_html_path)

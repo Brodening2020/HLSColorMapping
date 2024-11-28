@@ -21,6 +21,8 @@ imgfolder=r"./Pics_Ready"
 imgfolder_done=r"./Pics_Done"
 input_template_path = r"./templates/result_template.html"
 graph_html_folder = r"./Graph_html"
+temporary_html_path=r"./temporary_html/temporary.html"
+
 
 @app.route('/')
 def home():
@@ -46,10 +48,13 @@ def upload_file():
         print(imagepath_list)
         for i in imagepath_list:
             imgpath=str(i)
-            output_html_path=str(Path(graph_html_folder+r"/{}.html")).format(imgpath.split("\\")[-1].split(".")[0])
-            mapping(imgpath, input_template_path, output_html_path)
-            #処理が終わった画像はPics_Doneへ
-            shutil.move(imgpath, Path(imgfolder_done +"/"+ imgpath.split("\\")[-1]))
+            imgname=imgpath.split("\\")[-1]
+            done_imgpath=str(Path(imgfolder_done +"/"+ imgname))
+            output_html_path=str(Path(graph_html_folder+r"/{}.html")).format(imgname.split(".")[0])
+            #処理する画像は先にPics_Doneへ　HLSColorMapping側でhtml_outputやるときにDone_pics内の画像参照させてHTML作るから
+            shutil.move(imgpath, done_imgpath)
+            mapping(done_imgpath, input_template_path, output_html_path)
+
         
         return f'ファイルがアップロードされました: {filepath}'
     
