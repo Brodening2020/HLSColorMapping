@@ -41,14 +41,18 @@ def upload_file():
     if file:
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
         file.save(filepath)
-
-        imagepath_list = list(sorted(str(Path(imgfolder).glob("*"))))
+        #Pics_Ready内に保存されたすべての画像に対しHLSColorMappingを実行
+        imagepath_list = sorted(Path(imgfolder).glob("*"))
         print(imagepath_list)
-        for imgpath in imagepath_list:
-            output_html_path=str(Path(graph_html_folder+r"/{}.html")).format(imgpath.split("/")[-1].split(".")[0])
+        for i in imagepath_list:
+            imgpath=str(i)
+            output_html_path=str(Path(graph_html_folder+r"/{}.html")).format(imgpath.split("\\")[-1].split(".")[0])
             mapping(imgpath, input_template_path, output_html_path)
-            shutil.move(imgpath, Path(imgfolder_done +"/"+ imgpath.split("/")[-1]))
-            return send_from_directory('other_templates', output_html_path)
+            #処理が終わった画像はPics_Doneへ
+            shutil.move(imgpath, Path(imgfolder_done +"/"+ imgpath.split("\\")[-1]))
+        
+        return f'ファイルがアップロードされました: {filepath}'
+    
 
 
 if __name__ == '__main__':
