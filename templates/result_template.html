@@ -4,10 +4,17 @@
         <title>HLS ColorMapping System for ClipStudioPaint</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            @import url(../static/CSS/result_template.css);
+        </style>
     </head>
     <body>
         <h1>HLS ColorMapping System for ClipStudioPaint</h1>
-        <p>{{pic_done}}</p>
-        <p>{{fig}}</p>
+        <div class="container">
+            <div class="img_container">
+                {{pic_done}}
+            </div>
+            {{fig}}
+        </div>
     </body>
 </html>

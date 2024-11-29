@@ -10,12 +10,16 @@ viewport属性は、スマホやPC画面に表示するときの設定
 基本的にlang=ja, UTF-8, viewportの3つは必須
 他はweb上での検索とかseoとかSNSに使う用とかのタグもあるが、必須ではない
 link rel=CSS読み込みとサイトアイコンのタグも入れられる
+＠importは<style>タグ内なのでこれを外すと読み込めないから注意！！！
 -->
 <html lang="ja">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>My Website</title>
+        <style>
+            @import url(test.css);
+        </style>
     </head>
     <body>
         <header><h1>This is Header</h1></header>
@@ -38,7 +42,9 @@ link rel=CSS読み込みとサイトアイコンのタグも入れられる
         <p>歌姫と同様に一切の手順を省略せず放つ</p>
         <h3>200%の</h3>
         <h1>虚式　「茈」</h1>
+        <div class="container">
+            <img src="IMG_0604.PNG">
+        </div>
         <footer>This is Footer. Fisher Co. Ltd. All Rights reserved.</footer>
-        <img src='murasaki.jpg'>
     </body>
 </html>
