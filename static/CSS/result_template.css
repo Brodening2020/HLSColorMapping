@@ -7,23 +7,19 @@ imgとfigは違うので、それぞれ別のサブコンテナ（50%）に入�
 */
 .container {
     display: flex;
-    width: 100%;
+    width: 100vw;
+    height: 80vh;
+    justify-content: center;
 }
 
 .container .img_container {
     align-items: center;
     width: 50%;
 }
+
 .container .img_container img {
-    width: 100%;
+    width: auto;
     height: auto;
+    max-width: 100%;
+    max-height: 100%;
 }
-
-@media (max-width: 600px) {
-    .img_container {
-        display: flex;
-        align-items: center;
-        width: 100%; /* スマホなど600pxより小さな画面では画像を縦に並べる */
-    }
-}
-
